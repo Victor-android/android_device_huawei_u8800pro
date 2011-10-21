@@ -74,10 +74,10 @@ BOARD_KERNEL_CMDLINE := console=ttyDCC0 androidboot.hardware=huawei
 BOARD_KERNEL_BASE := 0x00200000
 BOARD_KERNEL_PAGESIZE := 4096
 
-TARGET_PROVIDES_LIBRIL := true
+#TARGET_PROVIDES_LIBRIL := true
 TARGET_PROVIDES_LIBAUDIO := true
 
-# TARGET_CUSTOM_RELEASETOOL := device/huawei/u8800pro/tools/u8800update
+TARGET_CUSTOM_RELEASETOOL := device/huawei/u8800pro/tools/releasetools
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun
@@ -103,7 +103,7 @@ BOARD_HAS_NO_MISC_PARTITION := true
 # Connectivity - Wi-Fi
 WPA_SUPPLICANT_VERSION := VER_0_6_X
 BOARD_WPA_SUPPLICANT_DRIVER := WEXT
-#BOARD_WLAN_DEVICE := bcm4329
+BOARD_WLAN_DEVICE := bcm4329
 WIFI_DRIVER_MODULE_PATH     := "/system/wifi/dhd.ko"
 WIFI_DRIVER_FW_STA_PATH     := "/system/wifi/firmware.bin"
 WIFI_DRIVER_FW_AP_PATH      := "/system/wifi/firmware_apsta.bin"

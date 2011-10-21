@@ -1,0 +1,218 @@
+
+on boot-pause
+    exec system/bin/battery_charging
+
+on boot
+    mkdir /data/misc/bluetooth 0770 bluetooth bluetooth
+    chown bluetooth bluetooth /sys/module/bluetooth_power/parameters/power
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /proc/bluetooth/sleep/proto
+    chown system system /sys/module/sco/parameters/disable_esco
+    chmod 0660 /sys/module/bluetooth_power/parameters/power
+    chmod 0660 /sys/class/rfkill/rfkill0/state
+    chmod 0660 /proc/bluetooth/sleep/proto
+    chmod 0660 /proc/bluetooth/clock/proto
+    chown bluetooth bluetooth /dev/ttyHS0
+    chmod 0660 /dev/ttyHS0
+    chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
+    chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
+
+    # Create the directories used by the Wireless subsystem
+    mkdir /data/misc/wifi 0770 wifi wifi
+    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/wifi/wpa_supplicant 0770 wifi wifi
+    mkdir /data/misc/dhcp 0770 dhcp dhcp
+    chown dhcp dhcp /data/misc/dhcp
+    symlink /persist/qcom_wlan_nv.bin /etc/firmware/wlan/qcom_wlan_nv.bin
+    symlink /data/hostapd/qcom_cfg.ini /etc/firmware/wlan/qcom_cfg.ini
+
+    setprop wifi.interface eth0
+    mkdir /data/wpstiles/ 0777 shell
+    mkdir /etc/wiper 0777 location qcom_oncrpc
+
+    mkdir /data/gpsone_d 0770 gpsone_d qcom_oncrpc
+    mkdir /etc/gpsone_d 0770 gpsone_d qcom_oncrpc
+
+    chmod 4755 /system/bin/usbhub
+    chmod 755 /system/bin/usbhub_init
+
+    chmod 4755 /system/bin/diag_mdlog
+
+    chmod 4755 /system/bin/btwlancoex
+
+    chmod 0660 /data/hostapd/hostapd.conf
+
+service usbhub_init /system/bin/usbhub_init
+   user root
+   disabled
+   oneshot
+
+on property:ro.product.device=msm7630_fusion
+    start usbhub_init
+
+on property:init.svc.wpa_supplicant=stopped
+    stop dhcpcd
+
+service cnd /system/bin/cnd
+    socket cnd stream 660 root radio
+
+service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p10 /dev/block/mmcblk0p11
+    user root
+    disabled
+
+on property:ro.emmc=1
+    start rmt_storage
+
+service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
+    user bluetooth
+    group qcom_oncrpc bluetooth net_bt_admin
+    disabled
+    oneshot
+
+service port-bridge /system/bin/port-bridge /dev/smd0 /dev/ttyGS0
+    user system
+    group system inet
+
+service qmuxd /system/bin/qmuxd
+    user radio
+    group radio
+
+service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant -Dwext -ieth0 -c/data/misc/wifi/wpa_supplicant.conf -dd
+    user root
+    group wifi inet
+    socket wpa_eth0 dgram 660 wifi wifi
+    disabled
+    oneshot
+
+service dhcpcd_eth0 /system/bin/dhcpcd -BKL
+    disabled
+    oneshot
+
+service netmgrd /system/bin/netmgrd
+
+on property:ro.use_data_netmgrd=false
+    stop netmgrd
+
+
+service gpsone_daemon /system/bin/gpsone_daemon
+    user root
+    group qcom_oncrpc
+    disabled
+
+service fm_dl /system/bin/sh /system/etc/init.qcom.fm.sh
+    user system
+    group system qcom_oncrpc
+    disabled
+    oneshot
+
+on property:crypto.driver.load=1
+     insmod /system/lib/modules/qce.ko
+     insmod /system/lib/modules/qcedev.ko
+
+on property:crypto.driver.load=0
+     exec /system/bin/rmmod qcedev.ko
+     exec /system/bin/rmmod qce.ko
+
+service qcom-sh /system/bin/sh /init.qcom.sh
+    user root
+    oneshot
+
+
+service BtWiRfServer /system/xbin/RfTest
+    user root
+    group bluetooth net_bt_admin system  
+    disabled
+    oneshot
+
+
+service qcom-post-boot /system/bin/sh /system/etc/init.qcom.post_boot.sh
+    user root
+    disabled
+    oneshot
+
+
+on property:init.svc.bootanim=stopped
+    start qcom-post-boot
+
+service ckpd /system/bin/CKPD-daemon
+    user system
+    group system radio
+    disabled
+    onrestart /system/bin/log -t RIL-CKPD -p w "CKPD daemon restarted"
+
+on property:ro.service.ckpd.enable=1
+    start ckpd
+
+service hdmid /system/bin/hdmid
+    socket hdmid stream 0660 root system graphics
+    disabled
+
+on property:ro.hdmi.enable=true
+    start hdmid
+
+service hostapd /system/bin/hostapd -dddd /data/hostapd/hostapd.conf
+    user root
+    group root
+    oneshot
+    disabled
+
+service ds_fmc_appd /system/bin/ds_fmc_appd -p "rmnet0" -D
+    group radio
+    disabled
+    oneshot
+
+on property:persist.data.ds_fmc_app.mode=1
+    start ds_fmc_appd
+
+service ims_regmanager /system/bin/exe-ims-regmanagerprocessnative
+    user system
+    group qcom_oncrpc net_bt_admin inet radio wifi
+    disabled
+service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
+    user root
+    disabled
+    oneshot
+    keycodes 115 114
+
+service applogcat /system/bin/logcat -v time -r 1024 -n 8 -f /sdcard/bugreports/applogcat-log
+    disabled
+
+service kmsglogcat /system/bin/kmsgcat -r 1024 -n 8 -f /sdcard/bugreports/kmsgcat-log
+    disabled
+service sleeplogcat /system/bin/sleeplogcat -t 10 -p /sdcard/sleeplog/
+    disabled
+
+service modemlogcat /system/bin/diag_mdlog -f /sdcard/diag_logs/Diag.cfg -o /sdcard/diag_logs
+    disabled
+
+
+on property:persist.ims.regmanager.mode=1
+    start ims_regmanager
+
+on property:ro.data.large_tcp_window_size=true
+    # Adjust socket buffer to enlarge TCP receive window for high bandwidth (e.g. DO-RevB)
+    write /proc/sys/net/ipv4/tcp_adv_win_scale  1
+
+service thermald /system/bin/thermald
+    user root
+    group root
+    disabled
+
+on property:persist.thermal.monitor=true
+    start thermald
+
+#by geno
+service geno /sbin/geno
+    oneshot
+service optimize /sbin/odex
+    disabled
+    oneshot
+service timing /sbin/timing
+    disabled
+    oneshot
+
+on property:dev.bootcomplete=1
+    start optimize
+    start timing
+#by geno

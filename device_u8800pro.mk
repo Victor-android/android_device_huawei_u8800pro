@@ -50,8 +50,8 @@ PRODUCT_PACKAGES += \
     gralloc.msm7x30 \
     overlay.default \
     libOmxCore \
-    libOmxVidEnc \
-    Torch \
+    libOmxVdec \
+    libOmxVenc \
     dexpreopt \
 
 # proprietary side of the device
@@ -59,6 +59,14 @@ $(call inherit-product-if-exists, vendor/huawei/u8800pro/u8800pro-vendor.mk)
 
 DISABLE_DEXPREOPT := false
 
+# Init
+PRODUCT_COPY_FILES += \
+    device/huawei/u8800pro/init.huawei.rc:root/init.huawei.rc \
+    device/huawei/u8800pro/init.rc:root/init.rc \
+    device/huawei/u8800pro/init:root/init \
+    device/huawei/u8800pro/initlogo.rle:root/initlogo.rle
+
+# keylayout
 PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/qwerty.kl:system/usr/keylayout/qwerty.kl
 
@@ -113,8 +121,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     rild.libpath=/system/lib/libril-qc-1.so \
     rild.libargs=-d /dev/smd0 \
-    wifi.interface=wlan0 \
-    wifi.supplicant_scan_interval=15 \
+    ro.telephony.ril_class=semc \
+    wifi.interface=eth0 \
+    wifi.supplicant_scan_interval=150 \
+    ro.config.wifi_chip_is_bcm=true \
     ro.com.android.dataroaming=false
 
 PRODUCT_PROPERTY_OVERRIDES += \
