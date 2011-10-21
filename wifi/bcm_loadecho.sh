@@ -1,5 +1,5 @@
 #!/bin/sh
-insmod /wifi/dhd.ko "firmware_path=/system/wifi/firmware.bin nvram_path=/system/wifi/nvram.txt"
+insmod /system/wifi/dhd.ko "firmware_path=/system/wifi/firmware.bin nvram_path=/system/wifi/nvram.txt"
 sleep 5
 cd /system/wifi/
 chmod 744 udp_server

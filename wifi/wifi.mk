@@ -8,4 +8,6 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/wifi/iwpriv:system/wifi/iwpriv \
     device/huawei/u8800pro/wifi/nvram.txt:system/wifi/nvram.txt \
     device/huawei/u8800pro/wifi/udp_server:system/wifi/udp_server \
+    device/huawei/u8800pro/wifi/firmware.bin:system/wifi/firmware.bin \
+    device/huawei/u8800pro/wifi/firmware_apsta.bin:system/wifi/firmware_apsta.bin \
 
