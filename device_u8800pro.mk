@@ -112,6 +112,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/prebuilt/dhd.ko:/system/wifi/dhd.ko \
 
+# prebuilt
+PRODUCT_COPY_FILES += \
+    device/huawei/u8800pro/prebuilt/libhardware_legacy.so:/system/lib/libhardware_legacy.so \
+    device/huawei/u8800pro/prebuilt/libsensorservice.so:/system/lib/libsensorservice.so \
+    device/huawei/u8800pro/prebuilt/overlay.default.so:/system/lib/hw/overlay.default.so \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.com.android.dateformat=dd-MM-yyyy \
     ro.build.baseband_version=129005 \
