@@ -13,4 +13,4 @@
 # limitations under the License.
 
 
-include $(call all-named-subdir-makefiles, liblights libaudio load_wifi)
+include $(call all-named-subdir-makefiles,libgralloc liblights libaudio load_wifi libril)
