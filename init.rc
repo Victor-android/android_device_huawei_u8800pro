@@ -1,4 +1,6 @@
 
+on early-init
+    start ueventd
 on emmc
 
     mkdir /system
@@ -24,7 +26,7 @@ sysclktz 0
 loglevel 3
 
     export PATH /sbin:/vendor/bin:/system/sbin:/system/bin:/system/xbin
-    export LD_LIBRARY_PATH /system/lib:/data/cust/lib:/vendor/lib
+    export LD_LIBRARY_PATH /vendor/lib:/data/cust/lib:/system/lib
     export ANDROID_BOOTLOGO 1
     export ANDROID_CACHE /cache
     export ANDROID_ROOT /system
@@ -49,11 +51,12 @@ loglevel 3
     mkdir /mnt 0775 root system
     mkdir /mnt/sdcard 0000 system system
     mkdir /HWUserData 0775 system system
+    wait /dev/block/mmcblk0p14
     mount vfat /dev/block/mmcblk0p14 /HWUserData uid=1000,gid=1015,umask=0002,utf8
 
     mkdir /.cust_backup
     mkdir /cust 
-    mount vfat /dev/block/mmcblk0p1 /.cust_backup rw
+    mount vfat /dev/block/mmcblk0p1 /.cust_backup rw wait
     mount ext3 loop@.cust_backup/image/cust.img /cust rw
 
 # Create cgroup mount point for cpu accounting
@@ -65,15 +68,18 @@ loglevel 3
 
     mkdir /system
     mkdir /data 0771 system system
-    mkdir /cache 0771 system cache
+    mkdir /persist 0771 system system
+    mkdir /cache 0770 system cache
     mkdir /config 0500 root root
+    mkdir /persist 0771 system system
+
+    # Directory for putting things only root should see.
     mkdir /mnt/secure 0700 root root
     mkdir /mnt/secure/staging 0700 root root
     mkdir /mnt/secure/asec  0700 root root
     mkdir /mnt/asec  0700 root system
     mount tmpfs tmpfs /mnt/asec mode=0755,gid=1000
 
-    mount rootfs rootfs / ro remount
     # Filesystem image public mount points.
     mkdir /mnt/obb 0700 root system
     mount tmpfs tmpfs /mnt/obb mode=0755,gid=1000
@@ -107,11 +113,41 @@ loglevel 3
     # 5.0 %
     write /dev/cpuctl/bg_non_interactive/cpu.shares 52
 
-# mount mtd partitions
+on fs
+
+on emmc-fs
+# mount mmc partitions
+    wait /dev/block/mmcblk0p12
+    mount ext4 /dev/block/mmcblk0p12 /system ro barrier=1,nodelalloc
+    wait /dev/block/mmcblk0p13
+    exec /system/bin/e2fsck -f -y /dev/block/mmcblk0p13
+    mount ext4 /dev/block/mmcblk0p13 /data nosuid nodev barrier=1 noauto_da_alloc,nodelalloc
+    mount ext4 /dev/block/mmcblk0p6 /cache nosuid nodev barrier=1,nodelalloc
+    exec /system/bin/iqcopy /system/etc/iq.img.vfat /data/iq.img.vfat
+    chown system system /data/iq.img.vfat
+    mkdir /data/app_iq_archive
+    chown system system /data/app_iq_archive
+    chmod 0640 /data/app_iq_archive
+    mount vfat loop@/data/iq.img.vfat /data/app_iq_archive rw nosuid nodev
+
+on post-fs
+    mount rootfs rootfs / ro remount
+
     chown system system /data
     chmod 0771 /data
     chown system system /persist
     chmod 0771 /persist
+    chmod 0664 /sys/devices/platform/msm_sdcc.1/polling
+    chmod 0664 /sys/devices/platform/msm_sdcc.2/polling
+    chmod 0664 /sys/devices/platform/msm_sdcc.3/polling
+    chmod 0664 /sys/devices/platform/msm_sdcc.4/polling
+
+    # Chown polling nodes as needed from UI running on system server
+    chown system system /sys/devices/platform/msm_sdcc.1/polling
+    chown system system /sys/devices/platform/msm_sdcc.2/polling
+    chown system system /sys/devices/platform/msm_sdcc.3/polling
+    chown system system /sys/devices/platform/msm_sdcc.4/polling
+
     # Mount compressed filesystems
     mount squashfs loop@/system/lib/modules/modules.sqf /system/lib/modules ro
     mount squashfs loop@/system/xbin/xbin.sqf /system/xbin ro
@@ -145,6 +181,8 @@ loglevel 3
     chmod 0220 /proc/sysrq-trigger
 
     mkdir /data/misc 01771 system misc
+    chmod 01771 /data/misc
+    chown system misc /data/misc
     mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
     mkdir /data/misc/bluetooth 0770 system system
     mkdir /data/misc/keystore 0700 keystore keystore
@@ -154,6 +192,9 @@ loglevel 3
     mkdir /data/misc/wifi 0770 wifi wifi
     chmod 0770 /data/misc/wifi
     chmod 0660 /data/misc/wifi/wpa_supplicant.conf
+    chown wifi wifi /data/misc/wifi
+    chown wifi wifi /data/misc/wifi/wpa_supplicant.conf
+
     mkdir /data/local 0771 shell shell
     mkdir /data/local/tmp 0771 shell shell
     mkdir /data/local/download 0771 system cache
@@ -174,6 +215,7 @@ loglevel 3
     chmod 0775 /data/drm/rights
     mkdir /data/hwvefs 0775 root sdcard_rw
     chown root sdcard_rw /data/hwvefs
+    chown system sdcard_rw /sys/touch_screen/update_firmware
     chmod 0775 /data/hwvefs
     mkdir /data/dalvik-cache 0771 system system
     chown system system /data/dalvik-cache
@@ -297,14 +339,9 @@ on boot
     chown system system /sys/kernel/ipv4/tcp_rmem_max
     chown root radio /proc/cmdline
 
-    chown system system /sys/module/g_android/parameters/product_id
-    chown system system /sys/devices/platform/msm_sdcc.1/polling
-    chown system system /sys/devices/platform/msm_sdcc.2/polling
-    chown system system /sys/devices/platform/msm_sdcc.3/polling
-    chown system system /sys/devices/platform/msm_sdcc.4/polling
-    chown system system /sys/devices/platform/msm_hsusb/gadget/wakeup
 
     chmod 664 /dev/input/event1
+    chmod 664 /dev/input/event2
     chown system system /sys/devices/platform/msm_hsusb/gadget/sdstatus
     chown system system /sys/devices/platform/msm_hsusb/gadget/switchusb
     chown system system /sys/devices/platform/msm_hsusb/gadget/fixusb
@@ -313,23 +350,31 @@ on boot
     setprop net.tcp.buffersize.umts    4094,87380,110208,4096,16384,110208
     setprop net.tcp.buffersize.edge    4093,26280,35040,4096,16384,35040
     setprop net.tcp.buffersize.gprs    4092,8760,11680,4096,8760,11680
+    setprop net.tcp.buffersize.lte     4094,87380,196608,4096,16384,196608
+    setprop net.tcp.buffersize.evdo_b  4094,87380,262144,4096,16384,262144
 
-    write /proc/sys/net/core/rmem_max  261120
-    write /proc/sys/net/core/wmem_max  261120
+    write /proc/sys/net/core/rmem_max  262144
+    write /proc/sys/net/core/wmem_max  262144
 
     class_start default
 
 chmod 0664 /dev/accel
 chmod 0664 /dev/compass_aot
+chmod 0664 /dev/akm8975_dev
 chmod 0664 /dev/compass_dev
+chmod 0664 /dev/gyro
 # Include extra init file
     import /system/etc/init.local.rc
 
 # Run sysinit
-    exec /system/bin/sysinit
-
+    start sysinit
     class_start default
-    
+
+## Daemon processes to be run by init.
+##
+service ueventd /sbin/ueventd
+    critical
+
 service console /system/bin/sh
     console
     disabled
@@ -369,13 +414,11 @@ service netd /system/bin/netd
 
 service debuggerd /system/bin/debuggerd
 
-service qmuxd /system/bin/qmuxd
-
 service ril-daemon /system/bin/rild
     socket rild stream 660 root radio
     socket rild-debug stream 660 radio system
     user root
-    group radio cache inet misc audio sdcard_rw net_admin net_raw
+    group radio cache inet misc audio sdcard_rw net_admin net_raw system qcom_oncrpc diag
 
 service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-system-server
     socket zygote stream 666
@@ -383,10 +426,11 @@ service zygote /system/bin/app_process -Xzygote /system/bin --zygote --start-sys
     onrestart write /sys/power/state on
     onrestart restart media
     onrestart restart netd
+    onrestart restart cnd
 
 service media /system/bin/mediaserver
     user media
-    group system audio camera graphics inet net_bt net_bt_admin net_raw
+    group system audio camera graphics inet net_bt net_bt_admin net_raw qcom_oncrpc
     ioprio rt 4
 
 service bootanim /system/bin/bootanimation
@@ -424,14 +468,6 @@ service opush /system/bin/sdptool add --channel=12 OPUSH
     disabled
     oneshot
 
-#service wpa_supplicant /system/bin/wpa_supplicant -Dwext -ieth0 -W -c/data/misc/wifi/wpa_supplicant.conf
-#    disabled
-#    oneshot
-
-#service dhcpcd_eth0 /system/bin/dhcpcd -BKL
-#    disabled 
-#    oneshot
-
 service pbap /system/bin/sdptool add --channel=19 PBAP
     user bluetooth
     group bluetooth net_bt_admin
@@ -459,6 +495,14 @@ service keystore /system/bin/keystore /data/misc/keystore
     group keystore
     socket keystore stream 666
 
+service iqmsd /system/bin/iqmsd
+    disabled
+on property:service.iq.active=1
+    start iqmsd
+
+on property:service.iq.active=0
+    stop iqmsd
+
 
 service oem_rpc_svc /system/bin/oem_rpc_svc
     oneshot
@@ -466,9 +510,12 @@ service oem_rpc_svc /system/bin/oem_rpc_svc
 service hw_diag_app /system/bin/hw_diag_app
     oneshot
     
-   
 service dumpstate /system/bin/dumpstate -s
     socket dumpstate stream 0660 shell log
+    disabled
+    oneshot
+
+service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
     disabled
     oneshot
 
@@ -479,6 +526,13 @@ service compassd /system/bin/compassd
     disabled
     oneshot
 
+service akm8975 /system/bin/akmd8975
+    disabled
+    oneshot
+
+service akm8962 /system/bin/akmd8962
+    disabled
+    oneshot
 service bcm_hciattach /system/bin/sh /system/etc/bluetooth/init.bcm.bt.sh
     user bluetooth
     group qcom_oncrpc bluetooth net_bt_admin system
@@ -524,5 +578,8 @@ service rmt_oeminfo /system/bin/rmt_oeminfo
 service PTTKeyDaemon /system/bin/PTTKeyDaemon 
     oneshot
 
-service phudump /system/bin/phudump 
-    disabled 
+service callife /system/bin/callife
+    oneshot
+
+service filebackup /system/bin/filebackup
+    socket filebackup stream 0600 radio system

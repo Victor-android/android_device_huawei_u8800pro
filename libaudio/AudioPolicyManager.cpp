@@ -54,7 +54,11 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
     uint32_t device = 0;
 
     if (fromCache) {
-        device = mDeviceForStrategy[strategy];
+        //FIXME: STRATEGY_RINGTONE(4) comes in as unknown so set device manually.
+        if(strategy == 4)
+            device = AudioSystem::DEVICE_OUT_SPEAKER;
+        else
+            device = mDeviceForStrategy[strategy];
         LOGV("getDeviceForStrategy() from cache strategy %d, device %x", strategy, device);
         return device;
     }
@@ -107,6 +111,9 @@ uint32_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strategy, boo
                 device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES;
                 if (device) break;
             }
+            if (mPhoneState == AudioSystem::MODE_RINGTONE)
+                device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_SPEAKER;
+            if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_EARPIECE;
             if (device == 0) {
                 LOGE("getDeviceForStrategy() earpiece device not found");

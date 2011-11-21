@@ -47,12 +47,14 @@ PRODUCT_PACKAGES += \
     overlay.default \
     gps.u8800pro \
     lights.u8800pro \
-    gralloc.msm7x30 \
+    gralloc.u8800pro \
     overlay.default \
     libOmxCore \
     libOmxVdec \
     libOmxVenc \
     dexpreopt \
+    load_wifi \
+    Torch \
 
 # proprietary side of the device
 $(call inherit-product-if-exists, vendor/huawei/u8800pro/u8800pro-vendor.mk)
@@ -64,6 +66,7 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/init.huawei.rc:root/init.huawei.rc \
     device/huawei/u8800pro/init.rc:root/init.rc \
     device/huawei/u8800pro/init:root/init \
+    device/huawei/u8800pro/ueventd.rc:root/ueventd.rc \
     device/huawei/u8800pro/initlogo.rle:root/initlogo.rle
 
 # keylayout
