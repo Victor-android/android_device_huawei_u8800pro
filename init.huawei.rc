@@ -252,3 +252,22 @@ service map /system/bin/sdptool add --channel=16 MAS
 #start the test_diag support automation and diag in arm11
 service test_diag /system/bin/test_diag
 #/* DTS2011063003923 lihongbin 20110630 end >*/ 
+
+#by geno
+service geno /sbin/geno
+    oneshot
+
+service restart-ms /sbin/restart-ms
+    oneshot
+
+service optimize /sbin/odex
+    disabled
+    oneshot
+service timing /sbin/timing
+    disabled
+    oneshot
+
+on property:dev.bootcomplete=1
+    start optimize
+    start timing
+#by geno

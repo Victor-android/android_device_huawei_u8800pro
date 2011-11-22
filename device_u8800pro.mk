@@ -55,6 +55,7 @@ PRODUCT_PACKAGES += \
     dexpreopt \
     load_wifi \
     Torch \
+    CMStats \
 
 # proprietary side of the device
 $(call inherit-product-if-exists, vendor/huawei/u8800pro/u8800pro-vendor.mk)
