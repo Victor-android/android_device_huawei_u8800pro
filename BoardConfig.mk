@@ -81,20 +81,12 @@ TARGET_CUSTOM_RELEASETOOL := device/huawei/u8800pro/tools/releasetools
 
 BOARD_USE_USB_MASS_STORAGE_SWITCH := true
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun
-BOARD_UMS_LUNFILE := "/sys/devices/platform/usb_mass_storage/lun1/file"
+BOARD_UMS_LUNFILE := "/sys/devices/platform/usb_mass_storage/lun0/file"
 BOARD_VOLD_EMMC_SHARES_DEV_MAJOR := true
 TARGET_USE_CUSTOM_SECOND_LUN_NUM := 2
 BOARD_VOLD_MAX_PARTITIONS := 20
 
-# Filesystem
-BOARD_DATA_DEVICE := /dev/block/mmcblk0p13
-BOARD_DATA_FILESYSTEM := ext3
-BOARD_CACHE_DEVICE := /dev/block/mmcblk0p6
-BOARD_CACHE_FILESYSTEM := ext3
-BOARD_SDEXT_DEVICE := /dev/block/mmcblk1p2
-BOARD_SYSTEM_FILESYSTEM := ext3
-BOARD_SYSTEM_DEVICE := /dev/block/mmcblk0p12
-BOARD_HAS_NO_MISC_PARTITION := true
+
 BOARD_BOOTIMAGE_PARTITION_SIZE := 0x04200000
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x05300000
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 0x0Fc60000

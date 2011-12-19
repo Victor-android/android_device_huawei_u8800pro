@@ -854,7 +854,7 @@ status_t AudioHardware::setVoiceVolume(float v)
     }
 
     int factor = read_int("/system/etc/volumefactor.txt");
-    if(factor<0) factor = 120;
+    if(factor<0) factor = 150;
 
     int vol = lrint(v * factor);
     LOGD("setVoiceVolume(%f)\n", v);

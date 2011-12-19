@@ -12,5 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-include $(call all-named-subdir-makefiles,libgralloc liblights libaudio load_wifi libril)
+ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),u8800pro)
+include $(call all-named-subdir-makefiles,libgralloc liblights libcamera libaudio load_wifi libril X5settings)
+endif

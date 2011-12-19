@@ -48,7 +48,6 @@ PRODUCT_PACKAGES += \
     gps.u8800pro \
     lights.u8800pro \
     gralloc.u8800pro \
-    overlay.default \
     libOmxCore \
     libOmxVdec \
     libOmxVenc \
@@ -67,6 +66,7 @@ PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/init.huawei.rc:root/init.huawei.rc \
     device/huawei/u8800pro/init.rc:root/init.rc \
     device/huawei/u8800pro/init:root/init \
+    device/huawei/u8800pro/adbd:root/sbin/adbd \
     device/huawei/u8800pro/ueventd.rc:root/ueventd.rc \
     device/huawei/u8800pro/initlogo.rle:root/initlogo.rle
 
@@ -116,8 +116,9 @@ PRODUCT_COPY_FILES += \
 # prebuilt
 PRODUCT_COPY_FILES += \
     device/huawei/u8800pro/prebuilt/libhardware_legacy.so:/system/lib/libhardware_legacy.so \
-    device/huawei/u8800pro/prebuilt/libsensorservice.so:/system/lib/libsensorservice.so \
     device/huawei/u8800pro/prebuilt/overlay.default.so:/system/lib/hw/overlay.default.so \
+#    device/huawei/u8800pro/prebuilt/libsensorservice.so:/system/lib/libsensorservice.so \
+
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.com.android.dateformat=dd-MM-yyyy \
@@ -139,8 +140,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=240 \
-    persist.sys.language=zh \
-    persist.sys.country=CN \
     persist.sys.timezone=Asia/Shanghai
 
 PRODUCT_PROPERTY_OVERRIDES += \

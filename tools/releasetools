@@ -15,6 +15,7 @@ cd "$LOC"/temp/META-INF/com/google/android
 grep -vw boot.img  updater-script > temp
 echo 'mount("vfat", "EMMC", "/dev/block/mmcblk0p1", "/cust");' >> temp
 echo 'package_extract_file("boot.img","/cust/image/boot.img");' >> temp
+echo 'unmount("/cust");' >> temp
 grep -vw assert  temp > updater-script
 rm -rf temp
 echo Zipping Package
